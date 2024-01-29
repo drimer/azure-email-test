@@ -3,7 +3,9 @@ import datetime
 import json
 import logging
 
+
 app = func.FunctionApp()
+
 
 @app.route(route="MyHttpTrigger", auth_level=func.AuthLevel.FUNCTION)
 def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
