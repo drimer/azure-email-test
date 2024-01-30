@@ -1,3 +1,5 @@
+from os import environ
+from azure.communication.email import EmailClient
 import azure.functions as func
 import datetime
 import json
@@ -11,19 +13,33 @@ app = func.FunctionApp()
 def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
-    name = req.params.get('name')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+    connection_string = environ.get("EMAIL_SERVICE_CONNECTION_STRING")
+    # logging.info("connection_string: {connection_string}".format(connection_string=connection_string))
+    client = EmailClient.from_connection_string(connection_string)
+    
+    message = {
+        "content": {
+            "subject": "This is the subject",
+            "plainText": "This is the body",
+            "html": "<html><h1>This is the body</h1></html>"
+        },
+        "recipients": {
+            "to": [
+                {
+                    "address": "alberto@onamail.com",
+                    "displayName": "Alberto (My Friend)"
+                }
+            ]
+        },
+        "senderAddress": "DoNotReply@drimerdev.site"
+    }
 
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
-    else:
-        return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
-        )
+    poller = client.begin_send(message)
+    result = poller.result()
+    
+    breakpoint()
+    
+    return func.HttpResponse(
+            "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
+            status_code=200
+    )
