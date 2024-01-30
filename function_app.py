@@ -14,7 +14,6 @@ def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
     connection_string = environ.get("EMAIL_SERVICE_CONNECTION_STRING")
-    # logging.info("connection_string: {connection_string}".format(connection_string=connection_string))
     client = EmailClient.from_connection_string(connection_string)
     
     message = {
@@ -37,8 +36,9 @@ def MyHttpTrigger(req: func.HttpRequest) -> func.HttpResponse:
     poller = client.begin_send(message)
     result = poller.result()
     
-    breakpoint()
-    
+    if result.get('error'):
+        raise Exception(result)
+
     return func.HttpResponse(
             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
             status_code=200
